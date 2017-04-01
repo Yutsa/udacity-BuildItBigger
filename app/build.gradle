@@ -29,4 +29,6 @@ dependencies {
     compile 'com.google.android.gms:play-services-ads:10.2.1'
     compile project(':jokegetter')
     compile project(':jokedisplayer')
+    compile project(path: ':JokeGetterBackend', configuration: 'android-endpoints')
+    compile 'com.google.code.findbugs:jsr305:2.0.1'
 }
