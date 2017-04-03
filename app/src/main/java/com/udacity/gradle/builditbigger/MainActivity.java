@@ -2,24 +2,51 @@ package com.udacity.gradle.builditbigger;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import com.google.android.gms.ads.AdListener;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.InterstitialAd;
 import com.jokegetter.JokeGetter;
 
 
 public class MainActivity extends AppCompatActivity {
 
-    public JokeGetter jokeGetter;
+    private static final String TAG = MainActivity.class.getSimpleName();
+    private JokeGetter mJokeGetter;
+    private InterstitialAd mInterstitialAd;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        jokeGetter = new JokeGetter();
+        mJokeGetter = new JokeGetter();
+
+        mInterstitialAd = new InterstitialAd(this);
+        mInterstitialAd.setAdUnitId(getString(R.string.banner_ad_unit_id));
+
+        mInterstitialAd.setAdListener(new AdListener() {
+            @Override
+            public void onAdClosed() {
+                requestNewInterstitial();
+                startJokeActivity();
+            }
+        });
+
+        requestNewInterstitial();
     }
 
+    private void requestNewInterstitial() {
+        AdRequest adRequest = new AdRequest.Builder()
+                .addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
+                .build();
+
+        mInterstitialAd.loadAd(adRequest);
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -44,10 +71,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void launchJokeDisplay(View view) {
-//        String joke = jokeGetter.getJoke();
-//        Intent intent = new Intent(this, JokeDisplay.class);
-//        intent.putExtra(Intent.EXTRA_TEXT, joke);
-//        startActivity(intent);
+        if (mInterstitialAd.isLoaded()) {
+            Log.i(TAG, "launchJokeDisplay: Ad is loaded");
+            mInterstitialAd.show();
+        } else {
+            Log.i(TAG, "launchJokeDisplay: Ad is not loaded");
+            new GetJokeAsyncTask().execute(this);
+        }
+    }
+
+    public void startJokeActivity() {
         new GetJokeAsyncTask().execute(this);
     }
 }
